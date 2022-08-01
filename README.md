@@ -6,8 +6,6 @@ An example of using axios interceptors to refresh login
 
 Fork and clone
 
-Ensure redis is installed and running.
-
 Navigate to project directory. Create a .env file and populate as desired. (see .env.example for required variables)
 
 Install dependencies:

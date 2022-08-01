@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 const axios = require('axios');
-const { createClient } = require('redis');
+const { createClient } = require('./token');
 
 
 let client = null;
