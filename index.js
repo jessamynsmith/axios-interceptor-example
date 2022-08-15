@@ -18,6 +18,7 @@ const refreshAccessToken = async () => {
     const response = await axios.post(url, data);
     console.log('response', response.status, response.data);
     await client.set(process.env.EMAIL, JSON.stringify(response.data));
+    return response.data.token;
 };
 
 
@@ -29,7 +30,7 @@ axiosApiInstance.interceptors.request.use(
         const value = await client.get(process.env.EMAIL);
         let token = '';
         if (value) {
-            const keys = JSON.parse(value)
+            const keys = JSON.parse(value);
             token = keys.token;
         }
         config.headers = {
@@ -53,7 +54,7 @@ axiosApiInstance.interceptors.response.use((response) => {
         console.log('auth error');
         originalRequest._retry = true;
         const access_token = await refreshAccessToken();
-        axios.defaults.headers.common['Authorization'] = 'Bearer ' + access_token;
+        axios.defaults.headers.common['x-access-token'] = access_token;
         return axiosApiInstance(originalRequest);
     }
     return Promise.reject(error);
