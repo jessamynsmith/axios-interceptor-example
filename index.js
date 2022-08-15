@@ -17,7 +17,6 @@ const refreshAccessToken = async () => {
     }
     const response = await axios.post(url, data);
     console.log('response', response.status, response.data);
-    await client.set(process.env.EMAIL, JSON.stringify(response.data));
     return response.data.token;
 };
 
@@ -27,17 +26,8 @@ const axiosApiInstance = axios.create();
 // Request interceptor for API calls
 axiosApiInstance.interceptors.request.use(
     async config => {
-        const value = await client.get(process.env.EMAIL);
-        let token = '';
-        if (value) {
-            const keys = JSON.parse(value);
-            token = keys.token;
-        }
-        config.headers = {
-            'x-access-token': token,
-            'Accept': 'application/json',
-            'Content-Type': 'application/x-www-form-urlencoded'
-        }
+        config.headers['Accept'] = 'application/json';
+        config.headers['Content-Type'] = 'application/x-www-form-urlencoded';
 
         return config;
     },
@@ -54,7 +44,7 @@ axiosApiInstance.interceptors.response.use((response) => {
         console.log('auth error');
         originalRequest._retry = true;
         const access_token = await refreshAccessToken();
-        axios.defaults.headers.common['x-access-token'] = access_token;
+        originalRequest.headers['x-access-token'] = access_token;
         return axiosApiInstance(originalRequest);
     }
     return Promise.reject(error);
@@ -66,12 +56,12 @@ const main = async () => {
     client.on('error', (err) => console.log('Redis Client Error', err));
     await client.connect();
 
-    // Uncomment this line to force re-authentication
-    //client.set(process.env.EMAIL, '');
-
     const url = baseUrl + '/welcome';
-    const result = await axiosApiInstance.get(url);
-    console.log('result', result.data);
+    axiosApiInstance.get(url).then(response => {
+        console.log('request response', response.status, response.data);
+    }).catch(error => {
+        console.log('request error', error.message, error.response.status, error.response.data);
+    });
 
 };
 
